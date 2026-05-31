@@ -1,20 +1,10 @@
 import { useState } from 'react';
 import {
-  Calendar, BarChart2, CalendarDays, Lightbulb, AlertTriangle,
-  HardHat, UtensilsCrossed, Hammer, Construction, Zap, Truck, ClipboardList, MoreHorizontal,
+  Calendar, BarChart2, CalendarDays, Lightbulb, AlertTriangle
 } from 'lucide-react';
 import Card from '../../common/Card';
-
-const CATEGORIES = {
-  workers:       { label: 'Worker Salaries',  icon: HardHat,         color: '#4F8EF7', bg: '#EBF2FF', bar: '#4F8EF7' },
-  food:          { label: 'Food & Supplies',  icon: UtensilsCrossed, color: '#22C989', bg: '#E3FAF1', bar: '#22C989' },
-  materials:     { label: 'Raw Materials',    icon: Hammer,          color: '#F59E0B', bg: '#FEF3C7', bar: '#F59E0B' },
-  equipment:     { label: 'Equipment Rental', icon: Construction,    color: '#7C5CFC', bg: '#EEE9FF', bar: '#7C5CFC' },
-  utilities:     { label: 'Utilities',        icon: Zap,             color: '#06B6D4', bg: '#ECFEFF', bar: '#06B6D4' },
-  transport:     { label: 'Transport',        icon: Truck,           color: '#EC4899', bg: '#FDF2F8', bar: '#EC4899' },
-  permits:       { label: 'Permits & Fees',   icon: ClipboardList,   color: '#6B7280', bg: '#F3F4F6', bar: '#6B7280' },
-  miscellaneous: { label: 'Miscellaneous',    icon: MoreHorizontal,  color: '#9CA3AF', bg: '#F9FAFB', bar: '#9CA3AF' },
-};
+import { EXPENSE_CATEGORIES, getCategoryByValue, MONTH_NAMES } from '../../../utils/constants';
+import { formatPHP } from '../../../utils/formatters';
 
 function StatMini({ label, value, sub, accent }) {
   return (
@@ -36,28 +26,28 @@ function StatMini({ label, value, sub, accent }) {
   );
 }
 
-export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} }) {
+export default function MonthlyView({ expenses, categoryBudgets = {} }) {
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  const year  = parseInt(selectedMonth.split('-')[0]);
+  const year = parseInt(selectedMonth.split('-')[0]);
   const month = parseInt(selectedMonth.split('-')[1]);
   const daysInMonth = new Date(year, month, 0).getDate();
 
   const monthExpenses = expenses.filter(e => e.date.startsWith(selectedMonth));
   const totalExpenses = monthExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const expenseCount  = monthExpenses.length;
-  const avgPerDay     = totalExpenses / daysInMonth;
+  const expenseCount = monthExpenses.length;
+  const avgPerDay = totalExpenses / daysInMonth;
 
   const allTimeCategoryTotals = {};
-  Object.keys(CATEGORIES).forEach(cat => {
+  Object.keys(EXPENSE_CATEGORIES).forEach(cat => {
     allTimeCategoryTotals[cat] = expenses.filter(e => e.category === cat).reduce((s, e) => s + e.amount, 0);
   });
 
   const categoryTotals = {};
-  Object.keys(CATEGORIES).forEach(cat => {
+  Object.keys(EXPENSE_CATEGORIES).forEach(cat => {
     categoryTotals[cat] = monthExpenses.filter(e => e.category === cat).reduce((s, e) => s + e.amount, 0);
   });
 
@@ -67,7 +57,7 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
   );
 
   const dailyData = Array.from({ length: daysInMonth }, (_, i) => {
-    const day  = i + 1;
+    const day = i + 1;
     const date = `${selectedMonth}-${String(day).padStart(2, '0')}`;
     const dayExpenses = expenses.filter(e => e.date === date);
     const total = dayExpenses.reduce((s, e) => s + e.amount, 0);
@@ -77,17 +67,18 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
   const maxDay = Math.max(...dailyData.map(d => d.total), 1);
 
   const firstDow = new Date(year, month - 1, 1).getDay();
-  const offset   = firstDow === 0 ? 6 : firstDow - 1;
+  const offset = firstDow === 0 ? 6 : firstDow - 1;
 
   const monthLabel = new Date(year, month - 1, 1).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' });
 
-  const warningCount = Object.keys(CATEGORIES).filter(cat => {
+  const warningCount = Object.keys(EXPENSE_CATEGORIES).filter(cat => {
     const budget = categoryBudgets[cat];
     if (!budget) return false;
     return allTimeCategoryTotals[cat] / budget >= 0.8;
   }).length;
 
-  const TopCatIcon = topExpense.category ? CATEGORIES[topExpense.category]?.icon : null;
+  const TopCatIcon = topExpense.category ? getCategoryByValue(topExpense.category)?.icon : null;
+  const topCatData = topExpense.category ? getCategoryByValue(topExpense.category) : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -153,8 +144,8 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
       {/* Mini stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
         <StatMini label="Transactions" value={expenseCount} sub="this month" accent="#4F8EF7" />
-        <StatMini label="Avg / Day"    value={formatPHP(avgPerDay)} sub={`over ${daysInMonth} days`} accent="#7C5CFC" />
-        <StatMini label="Active Days"  value={dailyData.filter(d => d.hasData).length} sub={`of ${daysInMonth} days`} accent="#22C989" />
+        <StatMini label="Avg / Day" value={formatPHP(avgPerDay)} sub={`over ${daysInMonth} days`} accent="#7C5CFC" />
+        <StatMini label="Active Days" value={dailyData.filter(d => d.hasData).length} sub={`of ${daysInMonth} days`} accent="#22C989" />
       </div>
 
       {/* Category Breakdown with budget progress */}
@@ -169,7 +160,7 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
               .filter(([, v]) => v > 0)
               .sort(([, a], [, b]) => b - a)
               .map(([cat, amount]) => {
-                const c = CATEGORIES[cat];
+                const c = getCategoryByValue(cat);
                 const CatIcon = c.icon;
                 const pctOfMonth = (amount / totalExpenses) * 100;
 
@@ -215,7 +206,7 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
                     <div style={{ height: '6px', background: 'var(--surface-subtle)', borderRadius: '99px', overflow: 'hidden', marginBottom: budget ? '6px' : '0' }}>
                       <div style={{
                         height: '100%', borderRadius: '99px',
-                        background: c.bar, width: `${pctOfMonth}%`, opacity: 0.85,
+                        background: c.color, width: `${pctOfMonth}%`, opacity: 0.85,
                         transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
                       }} />
                     </div>
@@ -240,7 +231,7 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
                               ? 'linear-gradient(90deg, #F43F5E, #FB7185)'
                               : isWarn
                               ? 'linear-gradient(90deg, #F59E0B, #FCD34D)'
-                              : `linear-gradient(90deg, ${c.bar}, ${c.bar}88)`,
+                              : `linear-gradient(90deg, ${c.color}, ${c.color}88)`,
                             borderRadius: '99px',
                             transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
                           }} />
@@ -257,7 +248,7 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
       {/* Heatmap Calendar */}
       <Card title="Daily Heatmap" icon={CalendarDays} iconColor="#7C5CFC" iconBg="#EEE9FF">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '4px' }}>
-          {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => (
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
             <div key={d} style={{ textAlign: 'center', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', padding: '2px 0' }}>
               {d}
             </div>
@@ -297,7 +288,7 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
       </Card>
 
       {/* Insight callout */}
-      {topExpense.amount > 0 && (
+      {topExpense.amount > 0 && topCatData && (
         <div style={{
           background: '#FFFBEB', border: '1px solid #FDE68A',
           borderRadius: 'var(--radius-lg)', padding: '16px 20px',
@@ -318,14 +309,14 @@ export default function MonthlyView({ expenses, formatPHP, categoryBudgets = {} 
               {TopCatIcon && (
                 <div style={{
                   width: '24px', height: '24px', borderRadius: '6px',
-                  background: CATEGORIES[topExpense.category]?.bg,
+                  background: topCatData.bg,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
-                  <TopCatIcon size={13} color={CATEGORIES[topExpense.category]?.color} strokeWidth={2} />
+                  <TopCatIcon size={13} color={topCatData.color} strokeWidth={2} />
                 </div>
               )}
               <p style={{ fontSize: '13px', color: '#B45309', lineHeight: 1.5 }}>
-                {CATEGORIES[topExpense.category]?.label} — {formatPHP(topExpense.amount)}, which is{' '}
+                {topCatData.label} — {formatPHP(topExpense.amount)}, which is{' '}
                 <strong>{((topExpense.amount / totalExpenses) * 100).toFixed(1)}%</strong> of your total spending.
               </p>
             </div>

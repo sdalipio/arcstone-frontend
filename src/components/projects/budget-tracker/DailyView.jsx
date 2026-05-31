@@ -1,24 +1,24 @@
 import { useState } from 'react';
 import {
   Calendar, CalendarDays, Plus, X, Trash2, Save, AlertCircle,
-  DollarSign, Tag, FileText,
-  HardHat, UtensilsCrossed, Hammer, Construction, Zap, Truck, ClipboardList, MoreHorizontal,
+  DollarSign, Tag, FileText, Loader2
 } from 'lucide-react';
 import Card from '../../common/Card';
 import Button from '../../common/Button';
+import { EXPENSE_CATEGORIES, getCategoryByValue } from '../../../utils/constants';
+import { formatPHP, formatDate } from '../../../utils/formatters';
 
-const EXPENSE_CATEGORIES = [
-  { value: 'workers',       label: 'Worker Salaries',  icon: HardHat,        color: '#4F8EF7', bg: '#EBF2FF' },
-  { value: 'food',          label: 'Food & Supplies',  icon: UtensilsCrossed, color: '#22C989', bg: '#E3FAF1' },
-  { value: 'materials',     label: 'Raw Materials',    icon: Hammer,          color: '#F59E0B', bg: '#FEF3C7' },
-  { value: 'equipment',     label: 'Equipment Rental', icon: Construction,    color: '#7C5CFC', bg: '#EEE9FF' },
-  { value: 'utilities',     label: 'Utilities',        icon: Zap,             color: '#F59E0B', bg: '#FFFBEB' },
-  { value: 'transport',     label: 'Transport',        icon: Truck,           color: '#06B6D4', bg: '#ECFEFF' },
-  { value: 'permits',       label: 'Permits & Fees',   icon: ClipboardList,   color: '#6B7280', bg: '#F3F4F6' },
-  { value: 'miscellaneous', label: 'Miscellaneous',    icon: MoreHorizontal,  color: '#9CA3AF', bg: '#F9FAFB' },
-];
-
-const getCat = (value) => EXPENSE_CATEGORIES.find(c => c.value === value) || EXPENSE_CATEGORIES[7];
+const inputStyle = {
+  width: '100%',
+  padding: '10px 14px',
+  fontSize: '14px',
+  fontFamily: 'var(--font-body)',
+  background: 'var(--surface-base)',
+  border: '1.5px solid var(--border-subtle)',
+  borderRadius: '10px',
+  color: 'var(--text-primary)',
+  outline: 'none',
+};
 
 function FormField({ label, icon: Icon, children, required }) {
   return (
@@ -37,23 +37,12 @@ function FormField({ label, icon: Icon, children, required }) {
   );
 }
 
-const inputStyle = {
-  width: '100%',
-  padding: '10px 14px',
-  fontSize: '14px',
-  fontFamily: 'var(--font-body)',
-  background: 'var(--surface-base)',
-  border: '1.5px solid var(--border-subtle)',
-  borderRadius: '10px',
-  color: 'var(--text-primary)',
-  outline: 'none',
-};
-
-export default function DailyView({ expenses, setExpenses, formatPHP }) {
+export default function DailyView({ expenses, onAddExpense, onDeleteExpense, categoryBudgets }) {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showForm, setShowForm] = useState(false);
   const [newExpense, setNewExpense] = useState({ category: 'materials', description: '', amount: '', date: selectedDate });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const dailyExpenses = expenses.filter(e => e.date === selectedDate);
   const dailyTotal = dailyExpenses.reduce((sum, e) => sum + e.amount, 0);
@@ -63,21 +52,33 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
     setShowForm(true);
   };
 
-  const addExpense = (e) => {
+  const addExpense = async (e) => {
     e.preventDefault();
     if (!newExpense.amount || !newExpense.description) return;
-    setExpenses([...expenses, { ...newExpense, id: Date.now(), amount: parseFloat(newExpense.amount) }]);
-    setShowForm(false);
+    
+    setSubmitting(true);
+    try {
+      await onAddExpense({
+        amount: parseFloat(newExpense.amount),
+        category: newExpense.category,
+        description: newExpense.description,
+        date: selectedDate,
+      });
+      setShowForm(false);
+      setNewExpense({ category: 'materials', description: '', amount: '', date: selectedDate });
+    } catch (err) {
+      console.error('Failed to add expense:', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const deleteExpense = (id) => {
-    setExpenses(expenses.filter(e => e.id !== id));
+  const deleteExpense = async (id) => {
+    await onDeleteExpense(id);
     setDeleteConfirm(null);
   };
 
-  const formattedDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-PH', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  });
+  const formattedDate = formatDate(selectedDate);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -164,7 +165,6 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
             }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Handle bar */}
             <div style={{ width: '40px', height: '4px', background: 'var(--border-medium)', borderRadius: '99px', margin: '0 auto 20px' }} />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -202,9 +202,8 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
                 </select>
               </FormField>
 
-              {/* Category preview chip */}
               {(() => {
-                const cat = getCat(newExpense.category);
+                const cat = getCategoryByValue(newExpense.category);
                 const CatIcon = cat.icon;
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: cat.bg, borderRadius: '10px', border: `1px solid ${cat.color}22` }}>
@@ -247,8 +246,8 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
               </FormField>
 
               <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
-                <Button type="submit" variant="primary" icon={Save} size="lg" fullWidth>
-                  Save Expense
+                <Button type="submit" variant="primary" icon={submitting ? Loader2 : Save} size="lg" fullWidth disabled={submitting}>
+                  {submitting ? 'Saving...' : 'Save Expense'}
                 </Button>
                 <Button type="button" variant="secondary" onClick={() => setShowForm(false)} size="lg" fullWidth>
                   Cancel
@@ -259,7 +258,7 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
         </div>
       )}
 
-      {/* Delete Confirm */}
+      {/* Delete Confirm Modal */}
       {deleteConfirm && (
         <div
           style={{
@@ -344,7 +343,8 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {dailyExpenses.map((exp, idx) => {
-              const cat = getCat(exp.category);
+              const cat = getCategoryByValue(exp.category);
+              const CatIcon = cat.icon;
               return (
                 <div
                   key={exp.id}
@@ -363,7 +363,6 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-medium)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
                 >
-                  {/* Category icon */}
                   <div style={{
                     width: '40px', height: '40px', borderRadius: '10px',
                     background: cat.bg,
@@ -371,10 +370,9 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
                     flexShrink: 0,
                     border: `1px solid ${cat.color}22`,
                   }}>
-                    <cat.icon size={18} color={cat.color} strokeWidth={2} />
+                    <CatIcon size={18} color={cat.color} strokeWidth={2} />
                   </div>
 
-                  {/* Details */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{
                       fontSize: '13.5px', fontWeight: 600,
@@ -388,7 +386,6 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
                     </p>
                   </div>
 
-                  {/* Amount + Delete */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                     <span style={{
                       fontSize: '15px', fontWeight: 800,
@@ -412,13 +409,11 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
                         e.currentTarget.style.background = '#FFF1F2';
                         e.currentTarget.style.borderColor = '#FEE2E2';
                         e.currentTarget.style.opacity = '1';
-                        e.currentTarget.querySelector('svg').style.color = '#F43F5E';
                       }}
                       onMouseLeave={e => {
                         e.currentTarget.style.background = 'transparent';
                         e.currentTarget.style.borderColor = 'transparent';
                         e.currentTarget.style.opacity = '0.5';
-                        e.currentTarget.querySelector('svg').style.color = 'var(--text-tertiary)';
                       }}
                     >
                       <Trash2 size={14} color="var(--text-tertiary)" strokeWidth={2} />
@@ -428,7 +423,6 @@ export default function DailyView({ expenses, setExpenses, formatPHP }) {
               );
             })}
 
-            {/* Summary row */}
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               padding: '12px 14px',

@@ -1,22 +1,10 @@
 import { useState } from 'react';
 import {
-  TrendingUp, Award, CalendarDays, BarChart2, PieChart,
-  HardHat, UtensilsCrossed, Hammer, Construction, Zap, Truck, ClipboardList, MoreHorizontal,
+  TrendingUp, Award, CalendarDays, BarChart2, PieChart
 } from 'lucide-react';
 import Card from '../../common/Card';
-
-const CATEGORIES = {
-  workers:       { label: 'Worker Salaries',  icon: HardHat,         bar: '#4F8EF7', iconColor: '#4F8EF7', iconBg: '#EBF2FF' },
-  food:          { label: 'Food & Supplies',  icon: UtensilsCrossed, bar: '#22C989', iconColor: '#22C989', iconBg: '#E3FAF1' },
-  materials:     { label: 'Raw Materials',    icon: Hammer,          bar: '#F59E0B', iconColor: '#F59E0B', iconBg: '#FEF3C7' },
-  equipment:     { label: 'Equipment Rental', icon: Construction,    bar: '#7C5CFC', iconColor: '#7C5CFC', iconBg: '#EEE9FF' },
-  utilities:     { label: 'Utilities',        icon: Zap,             bar: '#06B6D4', iconColor: '#06B6D4', iconBg: '#ECFEFF' },
-  transport:     { label: 'Transport',        icon: Truck,           bar: '#EC4899', iconColor: '#EC4899', iconBg: '#FDF2F8' },
-  permits:       { label: 'Permits & Fees',   icon: ClipboardList,   bar: '#6B7280', iconColor: '#6B7280', iconBg: '#F3F4F6' },
-  miscellaneous: { label: 'Miscellaneous',    icon: MoreHorizontal,  bar: '#9CA3AF', iconColor: '#9CA3AF', iconBg: '#F9FAFB' },
-};
-
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+import { EXPENSE_CATEGORIES, getCategoryByValue, MONTH_NAMES } from '../../../utils/constants';
+import { formatPHP } from '../../../utils/formatters';
 
 function CategoryIcon({ cat, size = 15 }) {
   const Icon = cat.icon;
@@ -24,11 +12,11 @@ function CategoryIcon({ cat, size = 15 }) {
     <div style={{
       width: size + 10, height: size + 10,
       borderRadius: '7px',
-      background: cat.iconBg,
+      background: cat.bg,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0,
     }}>
-      <Icon size={size} color={cat.iconColor} strokeWidth={2} />
+      <Icon size={size} color={cat.color} strokeWidth={2} />
     </div>
   );
 }
@@ -65,15 +53,15 @@ function SummaryCard({ label, value, sub, icon: Icon, iconBg, iconColor }) {
   );
 }
 
-export default function Analytics({ expenses, formatPHP }) {
+export default function Analytics({ expenses }) {
   const availableYears = [...new Set(expenses.map(e => e.date.split('-')[0]))].sort().reverse();
-  const [selectedYear, setSelectedYear] = useState(availableYears[0] || new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(availableYears[0] || new Date().getFullYear().toString());
 
   const yearlyExpenses = expenses.filter(e => e.date.startsWith(selectedYear.toString()));
-  const totalYearly    = yearlyExpenses.reduce((s, e) => s + e.amount, 0);
+  const totalYearly = yearlyExpenses.reduce((s, e) => s + e.amount, 0);
 
   const monthlyData = MONTH_NAMES.map((name, i) => {
-    const pad   = String(i + 1).padStart(2, '0');
+    const pad = String(i + 1).padStart(2, '0');
     const items = yearlyExpenses.filter(e => e.date.split('-')[1] === pad);
     return { name, total: items.reduce((s, e) => s + e.amount, 0), count: items.length };
   });
@@ -81,7 +69,7 @@ export default function Analytics({ expenses, formatPHP }) {
   const maxMonthly = Math.max(...monthlyData.map(m => m.total), 1);
 
   const categoryTotals = {};
-  Object.keys(CATEGORIES).forEach(cat => {
+  Object.keys(EXPENSE_CATEGORIES).forEach(cat => {
     categoryTotals[cat] = yearlyExpenses.filter(e => e.category === cat).reduce((s, e) => s + e.amount, 0);
   });
 
@@ -89,7 +77,7 @@ export default function Analytics({ expenses, formatPHP }) {
 
   const highestMonth = monthlyData.reduce((m, c) => c.total > m.total ? c : m, { name: '—', total: 0 });
   const activeMonths = monthlyData.filter(m => m.total > 0).length;
-  const topCatEntry  = Object.entries(categoryTotals).reduce((m, [k, v]) => v > m[1] ? [k, v] : m, ['', 0]);
+  const topCatEntry = Object.entries(categoryTotals).reduce((m, [k, v]) => v > m[1] ? [k, v] : m, ['', 0]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -133,10 +121,10 @@ export default function Analytics({ expenses, formatPHP }) {
 
       {/* Summary grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
-        <SummaryCard label="Transactions"  value={yearlyExpenses.length}    sub={`in ${selectedYear}`}    icon={BarChart2}    iconBg="#EBF2FF" iconColor="#4F8EF7" />
-        <SummaryCard label="Avg / Month"   value={formatPHP(totalYearly/12)} sub="per month"              icon={TrendingUp}   iconBg="#EEE9FF" iconColor="#7C5CFC" />
-        <SummaryCard label="Active Months" value={`${activeMonths} / 12`}   sub="months with data"        icon={CalendarDays} iconBg="#E3FAF1" iconColor="#22C989" />
-        <SummaryCard label="Peak Month"    value={highestMonth.name}         sub={formatPHP(highestMonth.total)} icon={Award} iconBg="#FFF1F2" iconColor="#F43F5E" />
+        <SummaryCard label="Transactions" value={yearlyExpenses.length} sub={`in ${selectedYear}`} icon={BarChart2} iconBg="#EBF2FF" iconColor="#4F8EF7" />
+        <SummaryCard label="Avg / Month" value={formatPHP(totalYearly / 12)} sub="per month" icon={TrendingUp} iconBg="#EEE9FF" iconColor="#7C5CFC" />
+        <SummaryCard label="Active Months" value={`${activeMonths} / 12`} sub="months with data" icon={CalendarDays} iconBg="#E3FAF1" iconColor="#22C989" />
+        <SummaryCard label="Peak Month" value={highestMonth.name} sub={formatPHP(highestMonth.total)} icon={Award} iconBg="#FFF1F2" iconColor="#F43F5E" />
       </div>
 
       {/* Monthly bar chart */}
@@ -149,7 +137,7 @@ export default function Analytics({ expenses, formatPHP }) {
           <div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100px', marginBottom: '6px' }}>
               {monthlyData.map((m) => {
-                const pct   = m.total > 0 ? (m.total / maxMonthly) * 100 : 0;
+                const pct = m.total > 0 ? (m.total / maxMonthly) * 100 : 0;
                 const isMax = m.total === highestMonth.total && m.total > 0;
                 return (
                   <div key={m.name} title={`${m.name}: ${formatPHP(m.total)}`}
@@ -225,7 +213,7 @@ export default function Analytics({ expenses, formatPHP }) {
               .filter(([, v]) => v > 0)
               .sort(([, a], [, b]) => b - a)
               .map(([cat, amount]) => {
-                const c   = CATEGORIES[cat];
+                const c = getCategoryByValue(cat);
                 const pct = (amount / totalYearly) * 100;
                 return (
                   <div key={cat}>
@@ -246,7 +234,7 @@ export default function Analytics({ expenses, formatPHP }) {
                     <div style={{ height: '8px', background: 'var(--surface-subtle)', borderRadius: '99px', overflow: 'hidden' }}>
                       <div style={{
                         height: '100%', width: `${pct}%`, borderRadius: '99px',
-                        background: c.bar, opacity: 0.82,
+                        background: c.color, opacity: 0.82,
                         transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
                       }} />
                     </div>
@@ -266,7 +254,7 @@ export default function Analytics({ expenses, formatPHP }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
             {topExpenses.map((exp, idx) => {
-              const cat = CATEGORIES[exp.category];
+              const cat = getCategoryByValue(exp.category);
               const CatIcon = cat?.icon;
               return (
                 <div
@@ -290,11 +278,11 @@ export default function Analytics({ expenses, formatPHP }) {
                   {cat && CatIcon ? (
                     <div style={{
                       width: '32px', height: '32px', borderRadius: '8px',
-                      background: cat.iconBg, flexShrink: 0,
+                      background: cat.bg, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      border: `1px solid ${cat.iconColor}22`,
+                      border: `1px solid ${cat.color}22`,
                     }}>
-                      <CatIcon size={15} color={cat.iconColor} strokeWidth={2} />
+                      <CatIcon size={15} color={cat.color} strokeWidth={2} />
                     </div>
                   ) : (
                     <div style={{
@@ -339,10 +327,10 @@ export default function Analytics({ expenses, formatPHP }) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
             {[
-              { label: 'Highest Month', value: highestMonth.name,                         sub: formatPHP(highestMonth.total) },
-              { label: 'Avg / Month',   value: formatPHP(totalYearly / 12),               sub: 'monthly average' },
-              { label: 'Top Category', value: CATEGORIES[topCatEntry[0]]?.label || '—',   sub: formatPHP(topCatEntry[1]) },
-              { label: 'Active Months', value: `${activeMonths} / 12`,                    sub: 'with expenses' },
+              { label: 'Highest Month', value: highestMonth.name, sub: formatPHP(highestMonth.total) },
+              { label: 'Avg / Month', value: formatPHP(totalYearly / 12), sub: 'monthly average' },
+              { label: 'Top Category', value: getCategoryByValue(topCatEntry[0])?.label || '—', sub: formatPHP(topCatEntry[1]) },
+              { label: 'Active Months', value: `${activeMonths} / 12`, sub: 'with expenses' },
             ].map(s => (
               <div key={s.label} style={{
                 background: 'rgba(255,255,255,0.6)', borderRadius: '10px',

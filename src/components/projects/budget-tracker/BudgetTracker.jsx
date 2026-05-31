@@ -1,39 +1,75 @@
-import { useState, useEffect } from 'react';
-import { TrendingUp, Wallet, BarChart3, Calendar, PieChart, Building2, Target, ShieldAlert } from 'lucide-react';
+import { useState } from 'react';
+import { 
+  TrendingUp, Wallet, BarChart3, Calendar, PieChart, Building2, 
+  Target, ShieldAlert, Loader2, AlertCircle, Users, Clock 
+} from 'lucide-react';
+import { useExpenses, useBudget } from './hooks';
 import DailyView from './DailyView';
 import MonthlyView from './MonthlyView';
 import Analytics from './Analytics';
 import BudgetSetup from './BudgetSetup';
+import { formatPHP } from '../../../utils/formatters';
+// NEW IMPORTS
+import PayrollEntry from './workers/PayrollEntry';
+import WorkerManagement from './workers/WorkerManagement';
 
 export default function BudgetTracker() {
   const [activeTab, setActiveTab] = useState('budget');
-  const [expenses, setExpenses] = useState([]);
-  const [projectBudget, setProjectBudget] = useState(0);
-  const [categoryBudgets, setCategoryBudgets] = useState({});
+  
+  // NEW STATE FOR WORKERS AND PAYROLL
+  const [workers, setWorkers] = useState([
+    {
+      id: 1,
+      name: 'Juan Dela Cruz',
+      dailyRate: 450,
+      position: 'laborer',
+      contactNumber: '09123456789',
+      isActive: true,
+      dateAdded: '2024-01-15'
+    },
+    {
+      id: 2,
+      name: 'Pedro Santos',
+      dailyRate: 650,
+      position: 'foreman',
+      contactNumber: '09123456780',
+      isActive: true,
+      dateAdded: '2024-01-15'
+    }
+  ]);
+  
+  const [payrollEntries, setPayrollEntries] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  const { 
+    expenses, 
+    loading: expensesLoading, 
+    error: expensesError,
+    addExpense, 
+    deleteExpense 
+  } = useExpenses();
+  
+  const { 
+    projectBudget, 
+    categoryBudgets, 
+    loading: budgetLoading,
+    error: budgetError,
+    saveBudget 
+  } = useBudget();
 
-  useEffect(() => {
-    const saved = localStorage.getItem('construction_expenses');
-    if (saved) setExpenses(JSON.parse(saved));
-    const pb = localStorage.getItem('construction_project_budget');
-    if (pb) setProjectBudget(parseFloat(pb));
-    const cb = localStorage.getItem('construction_category_budgets');
-    if (cb) setCategoryBudgets(JSON.parse(cb));
-  }, []);
+  // NEW FUNCTION: Convert payroll to expense
+  const handlePayrollToExpense = (payroll) => {
+    addExpense({
+      amount: payroll.totalAmount,
+      category: 'labor',
+      description: `Payroll: ${payroll.workerName} (${payroll.daysWorked} days)`,
+      date: payroll.date,
+      type: 'payroll'
+    });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('construction_expenses', JSON.stringify(expenses));
-  }, [expenses]);
-
-  useEffect(() => {
-    localStorage.setItem('construction_project_budget', projectBudget.toString());
-  }, [projectBudget]);
-
-  useEffect(() => {
-    localStorage.setItem('construction_category_budgets', JSON.stringify(categoryBudgets));
-  }, [categoryBudgets]);
-
-  const formatPHP = (amount) =>
-    new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(amount);
+  const loading = expensesLoading || budgetLoading;
+  const error = expensesError || budgetError;
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const avgExpense = expenses.length > 0 ? totalExpenses / expenses.length : 0;
@@ -51,12 +87,62 @@ export default function BudgetTracker() {
     return '#22C989';
   };
 
+  // UPDATED TABS to include Workers and Payroll
   const tabs = [
     { id: 'budget', label: 'Budgets', icon: Target },
     { id: 'daily', label: 'Daily', icon: Calendar },
     { id: 'monthly', label: 'Monthly', icon: BarChart3 },
     { id: 'analytics', label: 'Analytics', icon: PieChart },
+    { id: 'workers', label: 'Workers', icon: Users },        // NEW TAB
+    { id: 'payroll', label: 'Payroll', icon: Clock },        // NEW TAB
   ];
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', paddingBottom: '3rem' }}>
+        <div className="main-container" style={{ paddingTop: '60px', textAlign: 'center' }}>
+          <Loader2 size={48} color="#4F8EF7" style={{ animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+          <p style={{ color: 'var(--text-secondary)' }}>Loading your data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ minHeight: '100vh', paddingBottom: '3rem' }}>
+        <div className="main-container" style={{ paddingTop: '60px', textAlign: 'center' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '16px',
+            background: '#FFF1F2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <AlertCircle size={28} color="#F43F5E" />
+          </div>
+          <h3 style={{ color: '#F43F5E', marginBottom: '8px' }}>Connection Error</h3>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '8px 20px',
+              background: '#4F8EF7',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '3rem' }}>
@@ -125,7 +211,7 @@ export default function BudgetTracker() {
                 </div>
                 <div>
                   <p style={{ fontSize: '12px', fontWeight: 700, color: isOverBudget ? '#9F1239' : isWarning ? '#92400E' : '#166534', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                    {isOverBudget ? '⚠️ Over Budget!' : isWarning ? '⚠️ Budget Warning' : 'Project Budget'}
+                    {isOverBudget ? 'Over Budget!' : isWarning ? 'Budget Warning' : 'Project Budget'}
                   </p>
                   <p style={{ fontSize: '12.5px', color: isOverBudget ? '#BE123C' : isWarning ? '#B45309' : '#15803D', marginTop: '1px' }}>
                     {isOverBudget
@@ -144,7 +230,6 @@ export default function BudgetTracker() {
               </div>
             </div>
 
-            {/* Overall progress bar */}
             <div style={{ height: '10px', background: 'rgba(0,0,0,0.08)', borderRadius: '99px', overflow: 'hidden' }}>
               <div style={{
                 height: '100%',
@@ -242,6 +327,7 @@ export default function BudgetTracker() {
           padding: '4px',
           border: '1px solid var(--border-subtle)',
           width: 'fit-content',
+          flexWrap: 'wrap',  // Added for responsiveness
         }}>
           {tabs.map(tab => {
             const active = activeTab === tab.id;
@@ -261,18 +347,10 @@ export default function BudgetTracker() {
                   background: active ? 'var(--surface-card)' : 'transparent',
                   color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
                   boxShadow: active ? 'var(--shadow-sm)' : 'none',
-                  position: 'relative',
                 }}
               >
                 <tab.icon size={14} strokeWidth={active ? 2.5 : 2} />
                 {tab.label}
-                {tab.id === 'budget' && projectBudget === 0 && (
-                  <span style={{
-                    position: 'absolute', top: '4px', right: '4px',
-                    width: '6px', height: '6px', borderRadius: '99px',
-                    background: '#F59E0B',
-                  }} />
-                )}
               </button>
             );
           })}
@@ -283,29 +361,44 @@ export default function BudgetTracker() {
           {activeTab === 'daily' && (
             <DailyView
               expenses={expenses}
-              setExpenses={setExpenses}
-              formatPHP={formatPHP}
+              onAddExpense={addExpense}
+              onDeleteExpense={deleteExpense}
               categoryBudgets={categoryBudgets}
             />
           )}
           {activeTab === 'monthly' && (
             <MonthlyView
               expenses={expenses}
-              formatPHP={formatPHP}
               categoryBudgets={categoryBudgets}
             />
           )}
           {activeTab === 'analytics' && (
-            <Analytics expenses={expenses} formatPHP={formatPHP} />
+            <Analytics expenses={expenses} />
           )}
           {activeTab === 'budget' && (
             <BudgetSetup
               projectBudget={projectBudget}
-              setProjectBudget={setProjectBudget}
               categoryBudgets={categoryBudgets}
-              setCategoryBudgets={setCategoryBudgets}
+              onSaveBudgets={saveBudget}
               expenses={expenses}
+            />
+          )}
+          {/* NEW TABS CONTENT */}
+          {activeTab === 'workers' && (
+            <WorkerManagement 
+              workers={workers}
+              setWorkers={setWorkers}
               formatPHP={formatPHP}
+            />
+          )}
+          {activeTab === 'payroll' && (
+            <PayrollEntry 
+              workers={workers}
+              payrollEntries={payrollEntries}
+              setPayrollEntries={setPayrollEntries}
+              selectedDate={selectedDate}
+              formatPHP={formatPHP}
+              onPayrollToExpense={handlePayrollToExpense}
             />
           )}
         </div>

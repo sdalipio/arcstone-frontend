@@ -1,37 +1,29 @@
-// Format currency
-export const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
-  
-  // Format date
-  export const formatDate = (date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }).format(new Date(date));
-  };
-  
-  // Calculate total balance
-  export const calculateBalance = (transactions) => {
-    return transactions.reduce((sum, t) => 
-      t.type === 'income' ? sum + t.amount : sum - t.amount, 0
-    );
-  };
-  
-  // Calculate totals by type
-  export const calculateTotals = (transactions) => {
-    const income = transactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0);
-    
-    const expenses = transactions
-      .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
-    
-    return { income, expenses };
-  };
+// Format currency to PHP
+export const formatPHP = (amount) => {
+  return new Intl.NumberFormat('en-PH', { 
+    style: 'currency', 
+    currency: 'PHP', 
+    minimumFractionDigits: 2 
+  }).format(amount);
+};
+
+// Format date to readable string
+export const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-PH', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+// Format date to YYYY-MM-DD for input fields
+export const formatDateInput = (date) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};

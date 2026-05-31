@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Header from './components/layout/Header';
+// import Header from './components/layout/Header';
 import ProjectDisplay from './components/projects/ProjectDisplay';
 import HomePage from './components/home/HomePage';
 
@@ -16,10 +16,10 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <Header 
+      {/* <Header 
         currentProject={currentProject}
         onProjectChange={setCurrentProject}
-      />
+      /> */}
       <main className="main-container">
         {renderContent()}
       </main>

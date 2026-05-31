@@ -18,7 +18,7 @@ export default function ProjectDisplay({ projectId }) {
   if (!project) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
-        Project not found
+       Coming Soon
       </div>
     );
   }

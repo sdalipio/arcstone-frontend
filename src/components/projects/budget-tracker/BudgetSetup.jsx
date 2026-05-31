@@ -1,22 +1,12 @@
 import { useState } from 'react';
 import {
   Target, Save, DollarSign, AlertTriangle, CheckCircle, TrendingUp,
-  HardHat, UtensilsCrossed, Hammer, Construction, Zap, Truck, ClipboardList, MoreHorizontal,
-  ShieldAlert, Info,
+  ShieldAlert, Info, Loader2
 } from 'lucide-react';
-import Card from '../../common/Card';
+import Card from '../../common/Card'
 import Button from '../../common/Button';
-
-const EXPENSE_CATEGORIES = [
-  { value: 'workers',       label: 'Worker Salaries',  icon: HardHat,         color: '#4F8EF7', bg: '#EBF2FF' },
-  { value: 'food',          label: 'Food & Supplies',  icon: UtensilsCrossed, color: '#22C989', bg: '#E3FAF1' },
-  { value: 'materials',     label: 'Raw Materials',    icon: Hammer,          color: '#F59E0B', bg: '#FEF3C7' },
-  { value: 'equipment',     label: 'Equipment Rental', icon: Construction,    color: '#7C5CFC', bg: '#EEE9FF' },
-  { value: 'utilities',     label: 'Utilities',        icon: Zap,             color: '#06B6D4', bg: '#ECFEFF' },
-  { value: 'transport',     label: 'Transport',        icon: Truck,           color: '#EC4899', bg: '#FDF2F8' },
-  { value: 'permits',       label: 'Permits & Fees',   icon: ClipboardList,   color: '#6B7280', bg: '#F3F4F6' },
-  { value: 'miscellaneous', label: 'Miscellaneous',    icon: MoreHorizontal,  color: '#9CA3AF', bg: '#F9FAFB' },
-];
+import { EXPENSE_CATEGORIES, getCategoryByValue } from '../../../utils/constants';
+import { formatPHP } from '../../../utils/formatters';
 
 const inputStyle = {
   width: '100%',
@@ -53,14 +43,7 @@ function BudgetStatusBadge({ spent, budget }) {
   );
 }
 
-export default function BudgetSetup({
-  projectBudget,
-  setProjectBudget,
-  categoryBudgets,
-  setCategoryBudgets,
-  expenses,
-  formatPHP,
-}) {
+export default function BudgetSetup({ projectBudget, categoryBudgets, onSaveBudgets, expenses }) {
   const [localProjectBudget, setLocalProjectBudget] = useState(projectBudget > 0 ? projectBudget.toString() : '');
   const [localCatBudgets, setLocalCatBudgets] = useState(() => {
     const init = {};
@@ -70,6 +53,7 @@ export default function BudgetSetup({
     return init;
   });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
@@ -79,17 +63,24 @@ export default function BudgetSetup({
   const totalAllocated = Object.values(localCatBudgets)
     .reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const pb = parseFloat(localProjectBudget) || 0;
-    setProjectBudget(pb);
     const cb = {};
     EXPENSE_CATEGORIES.forEach(c => {
       const v = parseFloat(localCatBudgets[c.value]) || 0;
       if (v > 0) cb[c.value] = v;
     });
-    setCategoryBudgets(cb);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    
+    setSaving(true);
+    try {
+      await onSaveBudgets(pb, cb);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error('Failed to save budgets:', err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const projectBudgetVal = parseFloat(localProjectBudget) || 0;
@@ -271,7 +262,6 @@ export default function BudgetSetup({
                   />
                 </div>
 
-                {/* Category mini progress bar */}
                 {budgetVal > 0 && (
                   <div style={{ height: '5px', background: 'var(--surface-subtle)', borderRadius: '99px', overflow: 'hidden', marginTop: '8px' }}>
                     <div style={{
@@ -297,10 +287,11 @@ export default function BudgetSetup({
         onClick={handleSave}
         variant={saved ? 'success' : 'primary'}
         size="lg"
-        icon={saved ? CheckCircle : Save}
+        icon={saving ? Loader2 : (saved ? CheckCircle : Save)}
         fullWidth
+        disabled={saving}
       >
-        {saved ? 'Budgets Saved!' : 'Save All Budgets'}
+        {saving ? 'Saving...' : (saved ? 'Budgets Saved!' : 'Save All Budgets')}
       </Button>
 
     </div>

@@ -7,9 +7,7 @@ export default function Header({ currentProject, onProjectChange }) {
 
   const projects = [
     { id: 'budget', name: 'Budget Tracker', description: 'Construction expense tracking', icon: Briefcase, color: '#4F8EF7', bg: '#EBF2FF' },
-    { id: 'studyguide', name: 'Study Guide', description: 'AI-powered learning from PDFs', icon: BookOpen, color: '#22C989', bg: '#E3FAF1' },
-    { id: 'taskmanager', name: 'Task Manager', description: 'Coming soon', icon: FolderGit2, color: '#7C5CFC', bg: '#EEE9FF' },
-    { id: 'analytics', name: 'Analytics', description: 'Coming soon', icon: BarChart3, color: '#F59E0B', bg: '#FEF3C7' },
+    { id: 'studyguide', name: 'Study Guide', description: 'AI-powered learning from PDFs (Coming soon)', icon: BookOpen, color: '#22C989', bg: '#E3FAF1' },
   ];
 
   const current = projects.find(p => p.id === currentProject) || projects[0];
