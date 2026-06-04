@@ -15,8 +15,8 @@ const links = [
   {
     icon: Link,
     label: 'LinkedIn',
-    value: 'linkedin.com/in/yourprofile',
-    href: 'https://linkedin.com/in/yourprofile',
+    value: 'https://www.linkedin.com/in/shaundyl-alipio',
+    href: 'https://www.linkedin.com/public-profile/settings/?trk=d_flagship3_profile_self_view_public_profile&lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BKXdQGCmCRR6RlDzdIeygRw%3D%3D',
     color: '#22C989',
     bg: 'rgba(34,201,137,0.1)',
     border: 'rgba(34,201,137,0.25)',
