@@ -1,6 +1,7 @@
 // src/components/home/slides/ProjectsSlide.jsx
 import { useState, useEffect, useRef } from 'react';
 import { HardHat, BookOpen, ExternalLink } from 'lucide-react';
+import budgetDashboard from '../../../assets/budget-tracker/budget-dashboard.png';
 
 const projects = [
   {
@@ -16,6 +17,7 @@ const projects = [
     glow: 'rgba(79,142,247,0.15)',
     statusLabel: 'In Progress',
     statusColor: '#F59E0B',
+    preview: budgetDashboard,
   },
   {
     id: 'studyguide',
@@ -30,6 +32,7 @@ const projects = [
     glow: 'rgba(34,201,137,0.15)',
     statusLabel: 'Planning',
     statusColor: '#7C5CFC',
+    preview: null,
   },
 ];
 
@@ -46,7 +49,7 @@ function TiltCard({ project, visible, delay, onOpen }) {
     const cy = rect.top + rect.height / 2;
     const dx = (e.clientX - cx) / (rect.width / 2);
     const dy = (e.clientY - cy) / (rect.height / 2);
-    setTilt({ x: dy * -10, y: dx * 10 });
+    setTilt({ x: dy * -8, y: dx * 8 });
   };
 
   const handleMouseLeave = () => {
@@ -72,23 +75,26 @@ function TiltCard({ project, visible, delay, onOpen }) {
         background: project.bg,
         border: `1px solid ${hovered ? project.color + '55' : project.border}`,
         borderRadius: '20px',
-        padding: 'clamp(18px, 3vw, 28px)',
+        padding: 'clamp(18px, 3vw, 24px)',
         cursor: 'pointer',
         backdropFilter: 'blur(12px)',
         boxShadow: hovered ? `0 20px 60px ${project.glow}, 0 0 0 1px ${project.color}33` : 'none',
         willChange: 'transform',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '14px',
       }}
     >
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div style={{
-          width: '52px', height: '52px', borderRadius: '14px',
+          width: '48px', height: '48px', borderRadius: '13px',
           background: `${project.bg}`,
           border: `1px solid ${project.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
         }}>
-          <Icon size={24} color={project.color} />
+          <Icon size={22} color={project.color} />
         </div>
         <span style={{
           fontSize: '10px', fontWeight: 700,
@@ -103,15 +109,77 @@ function TiltCard({ project, visible, delay, onOpen }) {
         </span>
       </div>
 
-      <h3 style={{ fontSize: 'clamp(15px, 2.5vw, 18px)', fontWeight: 800, color: '#ffffff', margin: '0 0 10px 0', letterSpacing: '-0.01em' }}>
-        {project.title}
-      </h3>
-      <p style={{ fontSize: 'clamp(12px, 1.5vw, 13px)', color: 'rgba(160,174,192,0.8)', lineHeight: 1.6, margin: '0 0 18px 0' }}>
-        {project.description}
-      </p>
+      {/* Title + description */}
+      <div>
+        <h3 style={{ fontSize: 'clamp(15px, 2.5vw, 18px)', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0', letterSpacing: '-0.01em' }}>
+          {project.title}
+        </h3>
+        <p style={{ fontSize: 'clamp(12px, 1.5vw, 13px)', color: 'rgba(160,174,192,0.8)', lineHeight: 1.6, margin: 0 }}>
+          {project.description}
+        </p>
+      </div>
+
+      {/* Screenshot preview */}
+      {project.preview ? (
+        <div style={{
+          borderRadius: '10px', overflow: 'hidden',
+          border: `1px solid ${project.color}22`,
+          background: '#0D0D1F',
+          opacity: hovered ? 1 : 0.85,
+          transform: hovered ? 'scale(1.01)' : 'scale(1)',
+          transition: 'all 0.3s ease',
+        }}>
+          {/* Mini browser chrome */}
+          <div style={{
+            background: 'rgba(13,13,31,0.9)',
+            padding: '5px 10px',
+            borderBottom: `1px solid ${project.color}18`,
+            display: 'flex', alignItems: 'center', gap: '6px',
+          }}>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              {['#EF4444', '#F59E0B', '#22C989'].map(c => (
+                <div key={c} style={{ width: '6px', height: '6px', borderRadius: '50%', background: c }} />
+              ))}
+            </div>
+            <div style={{
+              flex: 1, maxWidth: '140px', margin: '0 auto',
+              background: 'rgba(255,255,255,0.04)',
+              borderRadius: '3px', padding: '2px 8px',
+              fontSize: '9px', color: 'rgba(160,174,192,0.4)',
+              textAlign: 'center',
+            }}>
+              budget-tracker.vercel.app
+            </div>
+          </div>
+          <img
+            src={project.preview}
+            alt={`${project.title} preview`}
+            style={{
+              width: '100%',
+              height: '160px',
+              objectFit: 'cover',
+              objectPosition: 'top',
+              display: 'block',
+            }}
+          />
+        </div>
+      ) : (
+        /* Placeholder for projects without screenshots */
+        <div style={{
+          borderRadius: '10px',
+          border: `1px dashed ${project.color}33`,
+          background: `${project.color}06`,
+          height: '100px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: '12px', color: `${project.color}66`, fontWeight: 500 }}>
+            Screenshots coming soon
+          </span>
+        </div>
+      )}
 
       {/* Features */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
         {project.features.map(f => (
           <span key={f} style={{
             fontSize: '11px', padding: '3px 10px', borderRadius: '6px',
@@ -125,7 +193,7 @@ function TiltCard({ project, visible, delay, onOpen }) {
       </div>
 
       {/* Tech stack */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
         {project.tech.map(t => (
           <span key={t} style={{
             fontSize: '10px', padding: '2px 8px', borderRadius: '4px',
@@ -146,6 +214,7 @@ function TiltCard({ project, visible, delay, onOpen }) {
         background: `${project.color}18`,
         border: `1px solid ${project.color}33`,
         color: project.color, fontWeight: 600, fontSize: '13px',
+        transition: 'background 0.2s ease',
       }}>
         View Project <ExternalLink size={13} />
       </div>
@@ -170,6 +239,7 @@ export default function ProjectsSlide({ isActive, onOpenProject }) {
       justifyContent: 'center',
       padding: 'clamp(24px, 5vw, 40px) clamp(16px, 4vw, 40px)',
       boxSizing: 'border-box',
+      overflowY: 'auto',
     }}>
       <div style={{ maxWidth: '900px', width: '100%', display: 'flex', flexDirection: 'column', gap: 'clamp(24px, 4vw, 36px)' }}>
 
@@ -198,15 +268,16 @@ export default function ProjectsSlide({ isActive, onOpenProject }) {
             </span>
           </h2>
           <p style={{ fontSize: 'clamp(12px, 1.5vw, 13px)', color: 'rgba(160,174,192,0.6)', marginTop: '8px' }}>
-            Full-stack and AI portfolio projects currently in development.
+            Full-stack and AI portfolio projects currently in development. Click a card to see details and screenshots.
           </p>
         </div>
 
-        {/* Cards grid — single col on mobile, 2 col on wider */}
+        {/* Cards grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
           gap: 'clamp(14px, 2.5vw, 20px)',
+          alignItems: 'start',
         }}>
           {projects.map((project, i) => (
             <TiltCard
