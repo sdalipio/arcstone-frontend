@@ -39,7 +39,7 @@ const projectData = {
     tech: ['React', '.NET 8', 'PostgreSQL', 'Tailwind CSS', 'Entity Framework', 'REST API'],
     goals: 'Demonstrate full-stack architecture skills with a real-world business use case that solves actual pain points for small construction businesses.',
     links: {
-      demo: null,
+      demo: 'https://budget-tracker-roan-pi.vercel.app/',
       frontend: 'https://github.com/sdalipio/budget-tracker-frontend',
       backend: null,
     },
