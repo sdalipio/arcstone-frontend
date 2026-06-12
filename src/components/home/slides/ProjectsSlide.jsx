@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { HardHat, BookOpen, ExternalLink } from 'lucide-react';
 import budgetDashboard from '../../../assets/budget-tracker/budget-dashboard.png';
+import sgPreview from '../../../assets/study-guide/studyguide-chat.png';
 
 const projects = [
   {
@@ -15,24 +16,26 @@ const projects = [
     bg: 'rgba(79,142,247,0.08)',
     border: 'rgba(79,142,247,0.2)',
     glow: 'rgba(79,142,247,0.15)',
-    statusLabel: 'In Progress',
-    statusColor: '#F59E0B',
+    domain: 'budget-tracker.vercel.app',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
     preview: budgetDashboard,
   },
   {
     id: 'studyguide',
     icon: BookOpen,
     title: 'Study Guide AI',
-    description: 'AI-powered learning platform that generates quizzes and flashcards from uploaded PDFs using RAG pipelines.',
-    features: ['PDF upload & parsing', 'AI question generation', 'Flashcard system', 'Quiz mode'],
-    tech: ['React', 'Python', 'OpenAI API', 'FastAPI'],
+    description: 'AI-powered learning platform that turns PDFs and Word docs into topic-based chat, summaries, flashcards, and quizzes using a RAG pipeline.',
+    features: ['PDF & Word upload', 'Topic auto-detection', 'Chat with citations', 'Flashcards & quizzes'],
+    tech: ['React', 'FastAPI', 'Groq', 'pgvector'],
     color: '#22C989',
     bg: 'rgba(34,201,137,0.08)',
     border: 'rgba(34,201,137,0.2)',
     glow: 'rgba(34,201,137,0.15)',
-    statusLabel: 'Planning',
-    statusColor: '#7C5CFC',
-    preview: null,
+    domain: 'localhost:5173',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
+    preview: sgPreview,
   },
 ];
 
@@ -148,7 +151,7 @@ function TiltCard({ project, visible, delay, onOpen }) {
               fontSize: '9px', color: 'rgba(160,174,192,0.4)',
               textAlign: 'center',
             }}>
-              budget-tracker.vercel.app
+              {project.domain}
             </div>
           </div>
           <img

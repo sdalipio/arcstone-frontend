@@ -157,10 +157,12 @@ export default function ProjectDisplay({ projectId }) {
           color: 'var(--text-primary)', letterSpacing: '-0.4px',
           marginBottom: '8px',
         }}>
-          Coming Soon
+          {project.status === 'completed' ? 'Source Code Available' : 'Coming Soon'}
         </h3>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px', maxWidth: '320px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-          This project is currently in development. Check back soon or follow the GitHub repo for updates.
+          {project.status === 'completed'
+            ? 'This project is complete. Explore the full source code and documentation on GitHub.'
+            : 'This project is currently in development. Check back soon or follow the GitHub repo for updates.'}
         </p>
 
         {project.github && (

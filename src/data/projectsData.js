@@ -15,6 +15,22 @@ export const projectsData = {
       ],
       status: 'completed'
     },
+    studyguide: {
+      id: 'studyguide',
+      title: 'Study Guide AI',
+      description: 'An AI-powered learning platform that turns your PDFs and Word documents into topic-based study tools — chat with your documents, summaries, flashcards, and quizzes — powered by a RAG pipeline.',
+      techStack: ['React', 'Vite', 'FastAPI', 'LangChain', 'Groq (Llama 3.3)', 'PostgreSQL', 'pgvector'],
+      github: 'https://github.com/sdalipio/studyguide',
+      liveDemo: null,
+      features: [
+        'PDF & Word upload with automatic topic segmentation',
+        'Chat with your document — streaming RAG answers with citations',
+        'AI-generated summaries per topic',
+        'Interactive 3D flashcards (shuffle + generate more)',
+        'Scored quizzes with a growing question bank',
+      ],
+      status: 'completed'
+    },
     taskmanager: {
       id: 'taskmanager',
       title: 'Task Manager',

@@ -9,6 +9,14 @@ import budgetWorkers from '../../assets/budget-tracker/budget-workers.png';
 import budgetExpenses from '../../assets/budget-tracker/budget-expenses.png';
 import budgetAnalytics from '../../assets/budget-tracker/budget-analytics.png';
 
+import sgHome from '../../assets/study-guide/studyguide-home.png';
+import sgTopics from '../../assets/study-guide/studyguide-topics.png';
+import sgSelection from '../../assets/study-guide/studyguide-aiselection.png';
+import sgChat from '../../assets/study-guide/studyguide-chat.png';
+import sgSummary from '../../assets/study-guide/studyguide-summary.png';
+import sgFlashcards from '../../assets/study-guide/studyguide-flashcards.png';
+import sgQuiz from '../../assets/study-guide/studyguide-quiz.png';
+
 
 const projectData = {
   budget: {
@@ -18,8 +26,9 @@ const projectData = {
     color: '#4F8EF7',
     bg: 'rgba(79,142,247,0.08)',
     border: 'rgba(79,142,247,0.25)',
-    statusLabel: 'In Progress',
-    statusColor: '#F59E0B',
+    domain: 'budget-tracker.vercel.app',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
     screenshots: [
       { src: budgetLanding, caption: 'Landing Page', sub: 'Public marketing page' },
       { src: budgetLogin, caption: 'Login', sub: 'Secure manager access' },
@@ -51,29 +60,38 @@ const projectData = {
     color: '#22C989',
     bg: 'rgba(34,201,137,0.08)',
     border: 'rgba(34,201,137,0.25)',
-    statusLabel: 'Planning',
-    statusColor: '#7C5CFC',
-    screenshots: [],
-    longDescription: 'An AI-powered learning platform that creates study materials from uploaded PDFs. This project demonstrates interest in AI/ML and RAG pipelines — generating quizzes, flashcards, and summaries automatically from any document.',
-    features: [
-      'PDF upload and intelligent text parsing',
-      'AI-generated questions from document content',
-      'Interactive flashcard study system',
-      'Timed quiz mode with scoring',
-      'Progress tracking per document',
+    domain: 'localhost:5173',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
+    screenshots: [
+      { src: sgHome, caption: 'Library', sub: 'Upload PDFs & Word docs' },
+      { src: sgTopics, caption: 'Topics', sub: 'Auto-detected from the document' },
+      { src: sgSelection, caption: 'Topic Hub', sub: 'Four ways to study a topic' },
+      { src: sgChat, caption: 'Chat', sub: 'RAG answers with citations' },
+      { src: sgSummary, caption: 'Summary', sub: 'AI overview of the topic' },
+      { src: sgFlashcards, caption: 'Flashcards', sub: 'Flip-card study deck' },
+      { src: sgQuiz, caption: 'Quiz', sub: 'Scored multiple-choice' },
     ],
-    tech: ['React', 'Python', 'FastAPI', 'OpenAI API', 'LangChain', 'ChromaDB'],
-    goals: 'Explore practical AI integration with RAG pipelines, demonstrate ability to build end-to-end AI-powered products from scratch.',
+    longDescription: 'An AI-powered learning platform that turns uploaded PDF and Word documents into focused study tools. Each document is automatically segmented into topics; for any topic you can chat with the content (streaming answers grounded in the source, with citations), read an AI summary, study flashcards, and take scored quizzes. It demonstrates an end-to-end RAG pipeline — parse, chunk, embed, vector-search, and generate.',
+    features: [
+      'PDF & Word upload with automatic topic segmentation',
+      'Chat with your document — streaming RAG answers with source citations',
+      'AI-generated summaries per topic',
+      'Interactive 3D flashcards with shuffle & generate-more',
+      'Scored quizzes drawn from a growing question bank',
+    ],
+    tech: ['React', 'Vite', 'Python', 'FastAPI', 'LangChain', 'Groq (Llama 3.3)', 'PostgreSQL', 'pgvector', 'Framer Motion'],
+    goals: 'Explore practical AI integration with RAG pipelines and demonstrate the ability to build an end-to-end, cost-free AI product from scratch — local embeddings, a pgvector store, and streaming LLM responses.',
     links: {
       demo: null,
-      frontend: null,
-      backend: null,
+      frontend: 'https://github.com/sdalipio/studyguide/tree/main/studyguide-frontend',
+      backend: 'https://github.com/sdalipio/studyguide/tree/main/studyguide-api',
     },
   },
 };
 
 // ─── Screenshot Slideshow ────────────────────────────────────
-function Slideshow({ screenshots, color, border }) {
+function Slideshow({ screenshots, color, border, domain }) {
   const [current, setCurrent] = useState(0);
   const [fading, setFading] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -143,7 +161,7 @@ function Slideshow({ screenshots, color, border }) {
             border: '1px solid rgba(255,255,255,0.08)',
             textAlign: 'center',
           }}>
-            budget-tracker.vercel.app
+            {domain}
           </div>
         </div>
 
@@ -335,6 +353,7 @@ export default function ProjectModal({ projectId, onClose }) {
           screenshots={project.screenshots}
           color={project.color}
           border={project.border}
+          domain={project.domain}
         />
 
         {/* Description */}
