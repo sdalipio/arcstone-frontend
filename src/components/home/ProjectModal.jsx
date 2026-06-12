@@ -41,7 +41,7 @@ const projectData = {
     links: {
       demo: 'https://budget-tracker-roan-pi.vercel.app/',
       frontend: 'https://github.com/sdalipio/budget-tracker-frontend',
-      backend: null,
+      backend: 'https://github.com/sdalipio/budget-tracker-api',
     },
   },
   studyguide: {
