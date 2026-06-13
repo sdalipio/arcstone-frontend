@@ -32,7 +32,7 @@ const projects = [
     bg: 'rgba(34,201,137,0.08)',
     border: 'rgba(34,201,137,0.2)',
     glow: 'rgba(34,201,137,0.15)',
-    domain: 'localhost:5173',
+    domain: 'studyguide.app',
     statusLabel: 'Completed',
     statusColor: '#22C989',
     preview: sgPreview,
@@ -271,7 +271,7 @@ export default function ProjectsSlide({ isActive, onOpenProject }) {
             </span>
           </h2>
           <p style={{ fontSize: 'clamp(12px, 1.5vw, 13px)', color: 'rgba(160,174,192,0.6)', marginTop: '8px' }}>
-            Full-stack and AI portfolio projects currently in development. Click a card to see details and screenshots.
+            Selected full-stack and AI projects. Click a card for details, screenshots, and a demo.
           </p>
         </div>
 

@@ -60,9 +60,10 @@ const projectData = {
     color: '#22C989',
     bg: 'rgba(34,201,137,0.08)',
     border: 'rgba(34,201,137,0.25)',
-    domain: 'localhost:5173',
+    domain: 'studyguide.app',
     statusLabel: 'Completed',
     statusColor: '#22C989',
+    demoVideo: '/studyguide-demo.mp4',
     screenshots: [
       { src: sgHome, caption: 'Library', sub: 'Upload PDFs & Word docs' },
       { src: sgTopics, caption: 'Topics', sub: 'Auto-detected from the document' },
@@ -348,6 +349,32 @@ export default function ProjectModal({ projectId, onClose }) {
         {/* Divider */}
         <div style={{ height: '1px', background: `linear-gradient(90deg, ${project.color}44, transparent)`, marginBottom: '24px' }} />
 
+        {/* Demo video (if available) */}
+        {project.demoVideo && (
+          <div style={{ marginBottom: '28px' }}>
+            <h4 style={{ fontSize: '11px', fontWeight: 700, color: project.color, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Demo</h4>
+            <div style={{
+              borderRadius: '14px',
+              overflow: 'hidden',
+              border: `1px solid ${project.border}`,
+              background: '#0D0D1F',
+            }}>
+              <video
+                src={project.demoVideo}
+                poster={project.screenshots?.[0]?.src}
+                controls
+                muted
+                playsInline
+                preload="metadata"
+                style={{ width: '100%', display: 'block', aspectRatio: '16/9', objectFit: 'cover', background: '#0D0D1F' }}
+              />
+            </div>
+            <p style={{ fontSize: '12px', color: 'rgba(160,174,192,0.5)', margin: '8px 0 0', textAlign: 'center' }}>
+              ~40s walkthrough — upload, chat with citations, flashcards & quiz
+            </p>
+          </div>
+        )}
+
         {/* Slideshow */}
         <Slideshow
           screenshots={project.screenshots}
@@ -416,7 +443,7 @@ export default function ProjectModal({ projectId, onClose }) {
               >
                 <ExternalLink size={14} /> Live Demo
               </a>
-            ) : (
+            ) : project.demoVideo ? null : (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
                 padding: '10px 18px', borderRadius: '10px',
