@@ -1,8 +1,11 @@
 // src/components/home/slides/ProjectsSlide.jsx
 import { useState, useEffect, useRef } from 'react';
-import { HardHat, BookOpen, ExternalLink } from 'lucide-react';
+import { HardHat, BookOpen, ExternalLink, ScanLine, Bot, TrendingUp } from 'lucide-react';
 import budgetDashboard from '../../../assets/budget-tracker/budget-dashboard.png';
 import sgPreview from '../../../assets/study-guide/studyguide-chat.png';
+import rsPreview from '../../../assets/receipt-scanner/preview.png';
+import raPreview from '../../../assets/research-agent/preview.png';
+import nbaPreview from '../../../assets/nba-ai/preview.png';
 
 const projects = [
   {
@@ -36,6 +39,54 @@ const projects = [
     statusLabel: 'Completed',
     statusColor: '#22C989',
     preview: sgPreview,
+  },
+  {
+    id: 'receiptscanner',
+    icon: ScanLine,
+    title: 'Receipt Scanner AI',
+    description: 'Vision-AI expense tracker — snap a receipt and AI extracts merchant, items, and totals, categorizes the expense, and generates spending insights.',
+    features: ['Photo → structured data (vision AI)', 'JWT auth & per-user data', 'Spending analytics & AI insights', '43 automated tests with CI'],
+    tech: ['React', 'FastAPI', 'Groq Vision', 'Playwright'],
+    color: '#14B8A6',
+    bg: 'rgba(20,184,166,0.08)',
+    border: 'rgba(20,184,166,0.2)',
+    glow: 'rgba(20,184,166,0.15)',
+    domain: 'github.com/sdalipio/receipt-scanner',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
+    preview: rsPreview,
+  },
+  {
+    id: 'researchagent',
+    icon: Bot,
+    title: 'Autonomous Research Agent',
+    description: 'Agentic AI that plans its own multi-step research — autonomously calling web search and calculator tools, self-correcting, and streaming its reasoning live.',
+    features: ['LangGraph tool-calling loop', 'Live reasoning timeline UI', 'Self-correction & guardrails', 'Source-cited answers'],
+    tech: ['LangGraph', 'Groq', 'FastAPI', 'React'],
+    color: '#8B5CF6',
+    bg: 'rgba(139,92,246,0.08)',
+    border: 'rgba(139,92,246,0.2)',
+    glow: 'rgba(139,92,246,0.15)',
+    domain: 'github.com/sdalipio/research-agent',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
+    preview: raPreview,
+  },
+  {
+    id: 'nbaai',
+    icon: TrendingUp,
+    title: 'NBA Betting AI',
+    description: 'Machine-learning pipeline that predicts NBA outcomes with XGBoost, backtests the strategy over 3 seasons, and flags value bets against bookmaker odds.',
+    features: ['XGBoost model (61% holdout accuracy)', 'Backtesting engine with Kelly sizing', 'Value-bet detection vs. implied odds', 'Streamlit analytics dashboard'],
+    tech: ['Python', 'XGBoost', 'pandas', 'Streamlit'],
+    color: '#F97316',
+    bg: 'rgba(249,115,22,0.08)',
+    border: 'rgba(249,115,22,0.2)',
+    glow: 'rgba(249,115,22,0.15)',
+    domain: 'github.com/sdalipio/nba-betting-ai',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
+    preview: nbaPreview,
   },
 ];
 

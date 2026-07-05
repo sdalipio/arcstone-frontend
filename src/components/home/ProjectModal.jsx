@@ -1,6 +1,6 @@
 // src/components/home/ProjectModal.jsx
 import { useEffect, useState, useRef } from 'react';
-import { X, HardHat, BookOpen, CheckCircle2, ChevronLeft, ChevronRight, GitBranch, ExternalLink, Clock } from 'lucide-react';
+import { X, HardHat, BookOpen, CheckCircle2, ChevronLeft, ChevronRight, GitBranch, ExternalLink, Clock, ScanLine, Bot, TrendingUp } from 'lucide-react';
 
 import budgetLanding from '../../assets/budget-tracker/budget-landing.png';
 import budgetLogin from '../../assets/budget-tracker/budget-login.png';
@@ -16,6 +16,10 @@ import sgChat from '../../assets/study-guide/studyguide-chat.png';
 import sgSummary from '../../assets/study-guide/studyguide-summary.png';
 import sgFlashcards from '../../assets/study-guide/studyguide-flashcards.png';
 import sgQuiz from '../../assets/study-guide/studyguide-quiz.png';
+
+import rsPreview from '../../assets/receipt-scanner/preview.png';
+import raPreview from '../../assets/research-agent/preview.png';
+import nbaPreview from '../../assets/nba-ai/preview.png';
 
 
 const projectData = {
@@ -87,6 +91,97 @@ const projectData = {
       demo: null,
       frontend: 'https://github.com/sdalipio/studyguide/tree/main/studyguide-frontend',
       backend: 'https://github.com/sdalipio/studyguide/tree/main/studyguide-api',
+    },
+  },
+  receiptscanner: {
+    icon: ScanLine,
+    title: 'Receipt Scanner AI',
+    tagline: 'Snap a receipt — vision AI reads it and tracks your spending',
+    color: '#14B8A6',
+    bg: 'rgba(20,184,166,0.08)',
+    border: 'rgba(20,184,166,0.25)',
+    domain: 'github.com/sdalipio/receipt-scanner',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
+    screenshots: [
+      { src: rsPreview, caption: 'Dashboard', sub: 'Scanned expenses, analytics & AI insights' },
+    ],
+    longDescription: 'A vision-AI expense tracker that eliminates manual data entry: photograph a receipt and a multimodal LLM extracts the merchant, line items, total, and date, then categorizes the expense automatically. Includes JWT authentication with per-user data isolation, original receipt photo storage, spending analytics with charts, and one-click AI-written spending insights. Backed by a full automated test pyramid (pytest, Vitest, Playwright E2E) running in GitHub Actions CI.',
+    features: [
+      'Vision AI extraction — photo to structured expense data',
+      'Automatic categorization into spending categories',
+      'JWT auth (bcrypt) with strict per-user data isolation',
+      'Original receipt photos stored and viewable per expense',
+      'Analytics: monthly trends, category breakdown, top merchants',
+      'AI-generated plain-English spending insights',
+      '43 automated tests (unit, integration, E2E) + CI pipeline',
+    ],
+    tech: ['React', 'FastAPI', 'Groq Vision (Llama 4 Scout)', 'SQLite', 'JWT', 'pytest', 'Vitest', 'Playwright', 'GitHub Actions'],
+    goals: 'Learn multimodal (vision) AI and structured data extraction from messy real-world input, while practicing professional engineering: layered architecture, security, and a complete automated-testing pyramid with CI.',
+    links: {
+      demo: null,
+      frontend: 'https://github.com/sdalipio/receipt-scanner/tree/main/receipt-scanner-frontend',
+      backend: 'https://github.com/sdalipio/receipt-scanner/tree/main/receipt-scanner-api',
+    },
+  },
+  researchagent: {
+    icon: Bot,
+    title: 'Autonomous Research Agent',
+    tagline: 'An AI that plans, uses tools, and shows its reasoning live',
+    color: '#8B5CF6',
+    bg: 'rgba(139,92,246,0.08)',
+    border: 'rgba(139,92,246,0.25)',
+    domain: 'github.com/sdalipio/research-agent',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
+    screenshots: [
+      { src: raPreview, caption: 'Mission Control', sub: 'Live reasoning timeline with tool calls' },
+    ],
+    longDescription: 'A true agentic AI system — not a chatbot. Given a question, the agent plans its own multi-step approach with a LangGraph state machine: it decides which tools to call (web search, calculator), observes the results, self-corrects when a tool fails, and synthesizes a source-cited answer. The React "Mission Control" UI streams every reasoning step live over Server-Sent Events, so you watch the agent think in real time.',
+    features: [
+      'LangGraph plan → act → observe tool-calling loop',
+      'Autonomous tool selection: web search + exact calculator',
+      'Self-correction on failed tool calls; max-step guardrails',
+      'Live animated reasoning timeline (SSE streaming)',
+      'Source citations on every answer',
+      'CLI mode with a live reasoning trace',
+    ],
+    tech: ['LangGraph', 'Groq (Llama 3.1)', 'Python', 'FastAPI', 'SSE', 'React', 'Framer Motion', 'DuckDuckGo Search'],
+    goals: 'Go beyond RAG into agentic AI — demonstrate real tool-calling orchestration, streaming architectures, and the engineering judgment to design guardrails and self-correction into an autonomous system.',
+    links: {
+      demo: null,
+      frontend: 'https://github.com/sdalipio/research-agent/tree/main/research-agent-frontend',
+      backend: 'https://github.com/sdalipio/research-agent/tree/main/research-agent-api',
+    },
+  },
+  nbaai: {
+    icon: TrendingUp,
+    title: 'NBA Betting AI',
+    tagline: 'Machine learning that finds value in the odds',
+    color: '#F97316',
+    bg: 'rgba(249,115,22,0.08)',
+    border: 'rgba(249,115,22,0.25)',
+    domain: 'github.com/sdalipio/nba-betting-ai',
+    statusLabel: 'Completed',
+    statusColor: '#22C989',
+    screenshots: [
+      { src: nbaPreview, caption: 'Dashboard', sub: 'Backtest P&L over 3 seasons of holdout games' },
+    ],
+    longDescription: 'An end-to-end machine-learning pipeline for NBA outcome prediction. It ingests three seasons of game logs, engineers rolling-form features, and trains an XGBoost classifier that reaches 61% accuracy on unseen holdout games. A backtesting engine simulates a fractional-Kelly betting strategy against a transparent market baseline, and a value-bet finder compares model probabilities against live bookmaker odds. Results are visualized in a Streamlit dashboard.',
+    features: [
+      'Data pipeline: 3 seasons of NBA game logs + live odds API',
+      'Feature engineering: rolling team-form statistics',
+      'XGBoost classifier — 61% accuracy on unseen games',
+      'Backtesting engine with fractional-Kelly bet sizing',
+      'Value-bet detection vs. bookmaker implied probabilities',
+      'Streamlit dashboard with cumulative P&L analytics',
+    ],
+    tech: ['Python', 'XGBoost', 'scikit-learn', 'pandas', 'Streamlit', 'Plotly', 'SQLite'],
+    goals: 'Demonstrate the full data-science lifecycle — data collection, feature engineering, model training, honest backtesting with documented assumptions, and turning a model into a running analytical product.',
+    links: {
+      demo: null,
+      frontend: 'https://github.com/sdalipio/nba-betting-ai/tree/main/dashboard',
+      backend: 'https://github.com/sdalipio/nba-betting-ai/tree/main/src',
     },
   },
 };
