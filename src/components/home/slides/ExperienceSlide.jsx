@@ -50,8 +50,6 @@ const experiences = [
       'Intensive training in C#, ASP.NET Core, React, MSSQL, Entity Framework Core, Tailwind CSS, Git, Docker, Azure DevOps',
       'Built full-stack capstone project using Agile methodology',
     ],
-    isTraining: true,
-    period: 'Aug 2025 – Dec 2025',
   },
 ];
 
@@ -107,7 +105,7 @@ export default function ExperienceSlide({ isActive }) {
               border: '1px solid rgba(34,201,137,0.2)',
               padding: '3px 10px', borderRadius: '99px',
             }}>
-              Jan 2026 – May 2026
+              Aug 2025 – May 2026
             </span>
           </div>
         </div>

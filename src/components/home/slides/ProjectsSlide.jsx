@@ -1,6 +1,6 @@
 // src/components/home/slides/ProjectsSlide.jsx
-import { useState, useEffect, useRef } from 'react';
-import { HardHat, BookOpen, ExternalLink, ScanLine, Bot, TrendingUp } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { HardHat, BookOpen, ExternalLink, ScanLine, Bot, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import budgetDashboard from '../../../assets/budget-tracker/budget-dashboard.png';
 import sgPreview from '../../../assets/study-guide/studyguide-chat.png';
 import rsPreview from '../../../assets/receipt-scanner/preview.png';
@@ -130,6 +130,8 @@ function TiltCard({ project, visible, delay, onOpen }) {
         border: `1px solid ${hovered ? project.color + '55' : project.border}`,
         borderRadius: '20px',
         padding: 'clamp(18px, 3vw, 24px)',
+        height: '100%',
+        boxSizing: 'border-box',
         cursor: 'pointer',
         backdropFilter: 'blur(12px)',
         boxShadow: hovered ? `0 20px 60px ${project.glow}, 0 0 0 1px ${project.color}33` : 'none',
@@ -261,9 +263,10 @@ function TiltCard({ project, visible, delay, onOpen }) {
         ))}
       </div>
 
-      {/* CTA */}
+      {/* CTA — marginTop:auto pins it to the bottom so all cards align */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+        marginTop: 'auto',
         padding: '10px', borderRadius: '10px',
         background: `${project.color}18`,
         border: `1px solid ${project.color}33`,
@@ -271,6 +274,144 @@ function TiltCard({ project, visible, delay, onOpen }) {
         transition: 'background 0.2s ease',
       }}>
         View Project <ExternalLink size={13} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Auto-flowing marquee carousel ───────────────────────────────
+// Cards drift horizontally in a seamless loop (the list is rendered twice
+// and the offset wraps at the halfway point). Pauses on hover/drag, arrows
+// nudge one card at a time. Honors prefers-reduced-motion by not auto-drifting.
+const DRIFT_SPEED = 22;   // px per second
+const CARD_WIDTH = 380;   // fixed card width inside the strip
+const CARD_GAP = 20;
+
+function MarqueeCarousel({ children, cardCount }) {
+  const trackRef = useRef(null);
+  const offsetRef = useRef(0);
+  const pausedRef = useRef(false);
+  const dragRef = useRef(null); // { startX, startOffset, moved }
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  const loopWidth = cardCount * (CARD_WIDTH + CARD_GAP);
+
+  const apply = useCallback((offset) => {
+    // Wrap into [0, loopWidth) so the duplicated list loops seamlessly.
+    const wrapped = ((offset % loopWidth) + loopWidth) % loopWidth;
+    offsetRef.current = wrapped;
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translateX(${-wrapped}px)`;
+    }
+  }, [loopWidth]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const onChange = (e) => setReducedMotion(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion) return; // no auto-drift for reduced-motion users
+    let raf;
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      if (!pausedRef.current && !dragRef.current) {
+        apply(offsetRef.current + DRIFT_SPEED * dt);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [apply, reducedMotion]);
+
+  const nudge = (dir) => apply(offsetRef.current + dir * (CARD_WIDTH + CARD_GAP));
+
+  // Drag / swipe support (pointer events cover mouse + touch).
+  const onPointerDown = (e) => {
+    dragRef.current = { startX: e.clientX, startOffset: offsetRef.current, moved: false };
+  };
+  const onPointerMove = (e) => {
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    if (Math.abs(dx) > 5) dragRef.current.moved = true;
+    apply(dragRef.current.startOffset - dx);
+  };
+  const endDrag = (e) => {
+    if (dragRef.current?.moved) {
+      // Swallow the click that follows a drag so cards don't open accidentally.
+      e.currentTarget.setAttribute('data-just-dragged', '1');
+      setTimeout(() => e.currentTarget?.removeAttribute('data-just-dragged'), 0);
+    }
+    dragRef.current = null;
+  };
+
+  const arrowStyle = {
+    position: 'absolute', top: '50%', transform: 'translateY(-50%)', zIndex: 2,
+    width: '38px', height: '38px', borderRadius: '50%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(15,18,32,0.85)', border: '1px solid rgba(255,255,255,0.15)',
+    color: 'rgba(255,255,255,0.8)', cursor: 'pointer',
+    transition: 'background 0.2s ease, border-color 0.2s ease',
+  };
+
+  return (
+    <div
+      style={{ position: 'relative' }}
+      onMouseEnter={() => { pausedRef.current = true; }}
+      onMouseLeave={() => { pausedRef.current = false; dragRef.current = null; }}
+    >
+      <button aria-label="Previous project" style={{ ...arrowStyle, left: '-14px' }}
+        onClick={() => nudge(-1)}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,92,252,0.3)'; e.currentTarget.style.borderColor = 'rgba(124,92,252,0.6)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(15,18,32,0.85)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+      >
+        <ChevronLeft size={19} />
+      </button>
+      <button aria-label="Next project" style={{ ...arrowStyle, right: '-14px' }}
+        onClick={() => nudge(1)}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,92,252,0.3)'; e.currentTarget.style.borderColor = 'rgba(124,92,252,0.6)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(15,18,32,0.85)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+      >
+        <ChevronRight size={19} />
+      </button>
+
+      <div
+        style={{
+          overflow: 'hidden',
+          // Soft fade at the edges so cards visibly "flow" in and out.
+          WebkitMaskImage: 'linear-gradient(90deg, transparent, black 6%, black 94%, transparent)',
+          maskImage: 'linear-gradient(90deg, transparent, black 6%, black 94%, transparent)',
+          cursor: 'grab',
+          touchAction: 'pan-y',
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClickCapture={(e) => {
+          if (e.currentTarget.getAttribute('data-just-dragged')) {
+            e.stopPropagation();
+            e.preventDefault();
+          }
+        }}
+      >
+        <div
+          ref={trackRef}
+          style={{
+            display: 'flex',
+            gap: `${CARD_GAP}px`,
+            width: 'max-content',
+            willChange: 'transform',
+            padding: '8px 0 16px',
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -295,7 +436,7 @@ export default function ProjectsSlide({ isActive, onOpenProject }) {
       boxSizing: 'border-box',
       overflowY: 'auto',
     }}>
-      <div style={{ maxWidth: '900px', width: '100%', display: 'flex', flexDirection: 'column', gap: 'clamp(24px, 4vw, 36px)' }}>
+      <div style={{ maxWidth: '1060px', width: '100%', display: 'flex', flexDirection: 'column', gap: 'clamp(24px, 4vw, 36px)' }}>
 
         {/* Header */}
         <div style={{
@@ -326,23 +467,19 @@ export default function ProjectsSlide({ isActive, onOpenProject }) {
           </p>
         </div>
 
-        {/* Cards grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
-          gap: 'clamp(14px, 2.5vw, 20px)',
-          alignItems: 'start',
-        }}>
-          {projects.map((project, i) => (
-            <TiltCard
-              key={project.id}
-              project={project}
-              visible={visible}
-              delay={0.2 + i * 0.15}
-              onOpen={onOpenProject}
-            />
+        {/* Flowing card strip — auto-drifts, pauses on hover, drag or use arrows */}
+        <MarqueeCarousel cardCount={projects.length}>
+          {[...projects, ...projects].map((project, i) => (
+            <div key={`${project.id}-${i}`} style={{ flex: `0 0 ${CARD_WIDTH}px`, width: `${CARD_WIDTH}px`, display: 'flex' }}>
+              <TiltCard
+                project={project}
+                visible={visible}
+                delay={0.2 + (i % projects.length) * 0.12}
+                onOpen={onOpenProject}
+              />
+            </div>
           ))}
-        </div>
+        </MarqueeCarousel>
       </div>
     </div>
   );
